@@ -113,20 +113,31 @@ const api = {
     return data;
   },
   async getStats() {
-    console.log('[Frontend] Fetching stats from:', `${API_BASE}/stats`);
-    const res = await fetch(`${API_BASE}/stats`);
+    console.log('[Frontend] Fetching stats from:', `${API_BASE}/api/stats`);
+    console.log('[Frontend] Using API_BASE:', API_BASE);
+    const res = await fetch(`${API_BASE}/api/stats`, {
+      headers: getAuthHeader()
+    });
     console.log('[Frontend] Stats response status:', res.status);
     const data = await res.json();
     console.log('[Frontend] Stats data:', data);
     return data;
   },
   async getRecentAbnormal() {
-    const res = await fetch(`${API_BASE}/recent-abnormal?limit=8`);
+    const res = await fetch(`${API_BASE}/api/recent-abnormal?limit=8`, {
+      headers: getAuthHeader()
+    });
     return res.json();
   },
   async getPatients() {
-    const res = await fetch(`${API_BASE}/patients`);
-    return res.json();
+    console.log('[Frontend] Fetching patients from:', `${API_BASE}/api/patients`);
+    const res = await fetch(`${API_BASE}/api/patients`, {
+      headers: getAuthHeader()
+    });
+    console.log('[Frontend] Patients response status:', res.status);
+    const data = await res.json();
+    console.log('[Frontend] Patients data:', data);
+    return data;
   },
   async getPatientHistory(patientName) {
     const res = await fetch(`${API_BASE}/patient/${encodeURIComponent(patientName)}/history`);
