@@ -101,10 +101,14 @@ function FormattedMessage({ text }) {
 const api = {
   async query(text) {
     console.log('[Frontend] Sending query:', text);
-    console.log('[Frontend] API URL:', `${API_BASE}/query`);
-    const res = await fetch(`${API_BASE}/query`, {
+    console.log('[Frontend] API URL:', `${API_BASE}/api/query`);
+    console.log('[Frontend] Using API_BASE:', API_BASE);
+    const res = await fetch(`${API_BASE}/api/query`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getAuthHeader()
+      },
       body: JSON.stringify({ query: text })
     });
     console.log('[Frontend] Query response status:', res.status);
@@ -731,8 +735,9 @@ function UploadPage() {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const response = await fetch('/api/ocr/upload', {
+      const response = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
+        headers: getAuthHeader(),
         body: formData
       });
 
