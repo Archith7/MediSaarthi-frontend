@@ -12,8 +12,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LandingPage from './components/LandingPage';
 import AuthPages from './components/AuthPages';
 
-// API Base URL - uses environment variable for production, localhost for development
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+// API Base URL - empty for Vercel proxy (uses /api prefix in endpoints)
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 // Get auth token helper
 const getAuthHeader = () => {
@@ -100,9 +100,6 @@ function FormattedMessage({ text }) {
 // API Functions
 const api = {
   async query(text) {
-    console.log('[Frontend] Sending query:', text);
-    console.log('[Frontend] API URL:', `${API_BASE}/api/query`);
-    console.log('[Frontend] Using API_BASE:', API_BASE);
     const res = await fetch(`${API_BASE}/api/query`, {
       method: 'POST',
       headers: { 
@@ -111,48 +108,42 @@ const api = {
       },
       body: JSON.stringify({ query: text })
     });
-    console.log('[Frontend] Query response status:', res.status);
-    const data = await res.json();
-    console.log('[Frontend] Query response data:', data);
-    return data;
+    return res.json();
   },
   async getStats() {
-    console.log('[Frontend] Fetching stats from:', `${API_BASE}/api/stats`);
-    console.log('[Frontend] Using API_BASE:', API_BASE);
     const res = await fetch(`${API_BASE}/api/stats`, {
       headers: getAuthHeader()
     });
-    console.log('[Frontend] Stats response status:', res.status);
-    const data = await res.json();
-    console.log('[Frontend] Stats data:', data);
-    return data;
+    return res.json();
   },
   async getRecentAbnormal() {
-    const res = await fetch(`${API_BASE}/api/recent-abnormal?limit=8`, {
+    const res = await fetch(`${API_BASE}/api/abnormal?limit=8`, {
       headers: getAuthHeader()
     });
     return res.json();
   },
   async getPatients() {
-    console.log('[Frontend] Fetching patients from:', `${API_BASE}/api/patients`);
     const res = await fetch(`${API_BASE}/api/patients`, {
       headers: getAuthHeader()
     });
-    console.log('[Frontend] Patients response status:', res.status);
-    const data = await res.json();
-    console.log('[Frontend] Patients data:', data);
-    return data;
+    return res.json();
   },
   async getPatientHistory(patientName) {
-    const res = await fetch(`${API_BASE}/patient/${encodeURIComponent(patientName)}/history`);
+    const res = await fetch(`${API_BASE}/api/patient/${encodeURIComponent(patientName)}/history`, {
+      headers: getAuthHeader()
+    });
     return res.json();
   },
   async getTestTypes() {
-    const res = await fetch(`${API_BASE}/tests/types`);
+    const res = await fetch(`${API_BASE}/api/tests/types`, {
+      headers: getAuthHeader()
+    });
     return res.json();
   },
   async getReportTypes() {
-    const res = await fetch(`${API_BASE}/reports/types`);
+    const res = await fetch(`${API_BASE}/api/reports/types`, {
+      headers: getAuthHeader()
+    });
     return res.json();
   },
   async listPatients(filters = {}) {
@@ -161,15 +152,15 @@ const api = {
     if (filters.has_abnormal !== undefined) params.append('has_abnormal', filters.has_abnormal);
     if (filters.test_type) params.append('test_type', filters.test_type);
     if (filters.report_type) params.append('report_type', filters.report_type);
-    const url = `${API_BASE}/patients/list${params.toString() ? '?' + params.toString() : ''}`;
-    const res = await fetch(url);
+    const url = `${API_BASE}/api/patients/list${params.toString() ? '?' + params.toString() : ''}`;
+    const res = await fetch(url, {
+      headers: getAuthHeader()
+    });
     return res.json();
   },
   async checkHealth() {
     try {
-      console.log('[Frontend] Checking health at: /health');
-      const res = await fetch('/health');
-      console.log('[Frontend] Health check status:', res.status, res.ok);
+      const res = await fetch(`${API_BASE}/health`);
       return res.ok;
     } catch (error) {
       console.error('[Frontend] Health check failed:', error);
@@ -735,7 +726,7 @@ function UploadPage() {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const response = await fetch(`${API_BASE}/api/upload`, {
+      const response = await fetch(`${API_BASE}/api/ocr/upload`, {
         method: 'POST',
         headers: getAuthHeader(),
         body: formData
@@ -806,9 +797,12 @@ function UploadPage() {
       };
       console.log('Sending save data:', saveData);
 
-      const response = await fetch('/api/ocr/save', {
+      const response = await fetch(`${API_BASE}/api/ocr/save`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAuthHeader()
+        },
         body: JSON.stringify(saveData)
       });
 
